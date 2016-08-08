@@ -7,7 +7,7 @@ export let menus = {
   _default: (data) => `
   ${chalk.underline('Usage:')}
 
-    ${data.name} <command> [options]
+    ${data.name} <command>${data.hasSubcommands ? ':<subcommand>' : ''} [options]
 
     ${chalk.dim('For further info about a command:')}
     ${data.name} help <command> ${chalk.dim('or')} ${data.name} <command> --help

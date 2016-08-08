@@ -7,6 +7,8 @@ export default class Transit {
     this.opts = opts
     this.cmds = {}
 
+    this.opts.hasSubcommands = false
+
     /* parse arguments into config */
     this.argv = minimist(process.argv.slice(2), {
       boolean: ['h', 'help', 'v', 'version']
@@ -18,6 +20,10 @@ export default class Transit {
   }
 
   command (data) {
+    if (data.subcommands) {
+      this.opts.hasSubcommands = true
+    }
+
     this.cmds[data.command] = data
     addHelpMenu(data, this.opts)
 
