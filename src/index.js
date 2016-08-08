@@ -1,13 +1,24 @@
+import updateNotifier from 'update-notifier'
 import minimist from 'minimist'
 import chalk from 'chalk'
+import { getConfig } from './config'
 import { menus, addHelpMenu, addOption } from './help'
 
 export default class Transit {
   constructor (opts) {
-    this.opts = opts
+    this.config = getConfig(opts)
     this.cmds = {}
 
-    this.opts.hasSubcommands = false
+    if (this.config.checkForUpdates) {
+      updateNotifier({
+        pkg: {
+          name: this.config.name,
+          version: this.config.version
+        }
+      }).notify()
+    }
+
+    this.config.hasSubcommands = false
 
     /* parse arguments into config */
     this.argv = minimist(process.argv.slice(2), {
@@ -21,11 +32,11 @@ export default class Transit {
 
   command (data) {
     if (data.subcommands) {
-      this.opts.hasSubcommands = true
+      this.config.hasSubcommands = true
     }
 
     this.cmds[data.command] = data
-    addHelpMenu(data, this.opts)
+    addHelpMenu(data, this.config)
 
     return this
   }
@@ -47,6 +58,7 @@ export default class Transit {
       name: '-h, --help',
       description: 'show help menu for a command'
     })
+    
     addOption({
       name: '-v, --version',
       description: 'show version number'
@@ -59,7 +71,7 @@ export default class Transit {
 
     /* show version number */
     if (this.argv.version || this.argv.v) {
-      return console.log(`v${this.opts.version}` || 'no version specified')
+      return console.log(`v${this.config.version}` || 'no version specified')
     }
 
     const cmd = this.argv._[0]
@@ -79,10 +91,11 @@ export default class Transit {
   _help () {
     const cmd = this.argv._[1] || '_default'
 
-    if (this.opts.prependMenu) {
-      console.log(this.opts.prependMenu)
+    if (this.config.prependMenu) {
+      const withPadding = this.config.prependMenu.split('\n').map((line) => `${new Array(3).join(' ')}${line}`).join('\n')
+      process.stdout.write(withPadding)
     }
 
-    console.log(menus[cmd](this.opts))
+    console.log(menus[cmd](this.config))
   }
 }
