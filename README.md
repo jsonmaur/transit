@@ -1,2 +1,9 @@
-# transit
-Framework for building beautiful CLIs
+# Transit
+
+> Docs coming soon!
+
+## Getting Started
+
+```bash
+npm install --save transit
+```

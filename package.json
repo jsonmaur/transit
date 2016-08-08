@@ -1,0 +1,42 @@
+{
+  "name": "transit",
+  "version": "0.1.0",
+  "description": "Simple framework for building beautiful CLIs",
+  "author": "Jason Maurer",
+  "license": "MIT",
+  "homepage": "https://github.com/jsonmaur/transit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsonmaur/transit.git"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "keywords": [],
+  "files": [
+    "lib/",
+    "LICENSE",
+    "README.md"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test:lint": "standard --verbose | snazzy",
+    "test": "npm-run-all test:*",
+    "build": "rm -rf lib && babel src -d lib --no-comments",
+    "watch": "npm run build -- -w",
+    "prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "babel-cli": "6.11.4",
+    "babel-preset-es2015": "6.13.2",
+    "npm-run-all": "2.3.0",
+    "snazzy": "4.0.1",
+    "standard": "7.1.2"
+  },
+  "dependencies": {},
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  }
+}
