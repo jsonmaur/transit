@@ -16,7 +16,7 @@ $ pizza
 $ pizza --help
 ```
 
-![menu](/assets/menu.png?raw=true)
+![menu](/assets/menu.jpg?raw=true)
 
 ```bash
 $ pizza help info
@@ -24,7 +24,7 @@ $ pizza help info
 $ pizza info --help
 ```
 
-![submenu](/assets/submenu.png?raw=true)
+![submenu](/assets/submenu.jpg?raw=true)
 
 
 ```javascript
