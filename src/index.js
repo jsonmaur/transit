@@ -113,7 +113,7 @@ export default class Transit {
     const cmd = this.commands[argv._[0]]
 
     /* allow help flag on all commands or when command has subcommands */
-    if (argv.help || argv.h || (cmd && !cmd.action)) {
+    if ((argv.help || argv.h) && ((cmd && !cmd.action) || argv._[0] !== 'help')) {
       argv._.unshift('help')
     }
     /* show help menus */
