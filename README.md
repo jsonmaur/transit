@@ -82,3 +82,7 @@ cli.command({
 
 cli.run()
 ```
+
+## License
+
+[MIT](LICENSE) © [Jason Maurer](http://maur.co)
