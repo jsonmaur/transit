@@ -49,7 +49,7 @@ ${Object.keys(cmd.options).map((opt) => {
     return `${description}
   ${chalk.underline('Usage:')}
 
-    ${cmd.usage || `${opts.name} ${cmd.command} [options]`}
+    ${`${opts.name} ${cmd.command} [options]`}
   ${options}`
   }
 }
