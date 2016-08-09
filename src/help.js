@@ -18,6 +18,8 @@ export default function () {
     prepend(this.config.prependMenu)
   } else if (this.config.prependMenuAll) {
     prepend(this.config.prependMenuAll)
+  } else {
+    console.log()
   }
 
   if (menu === '_default' || !this.commands[menu]) {
@@ -45,7 +47,6 @@ export default function () {
     })
   } else {
     const cmd = this.commands[menu]
-    console.log()
 
     title('Usage:')
     text(this.config.name, `${cmd.command}${cmd.subcommands ? ':<subcommand>' : ''}`, '[options]')

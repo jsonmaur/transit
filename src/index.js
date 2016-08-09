@@ -110,8 +110,10 @@ export default class Transit {
       return console.log(`v${this.config.version}` || 'no version specified')
     }
 
-    /* allow help flag on all commands */
-    if (argv.help || argv.h) {
+    const cmd = this.commands[argv._[0]]
+
+    /* allow help flag on all commands or when command has subcommands */
+    if (argv.help || argv.h || (cmd && !cmd.action)) {
       argv._.unshift('help')
     }
     /* show help menus */
@@ -119,8 +121,9 @@ export default class Transit {
       return help.apply(this)
     }
 
-    const cmd = this.commands[argv._[0]]
-    if (!cmd) return Promise.reject(this.config.invalidCommand(argv._))
+    if (!cmd) {
+      return Promise.reject(this.config.invalidCommand(argv._))
+    }
 
     if (cmd.action) {
       const opts = {}
