@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import deepAssign from 'deep-assign'
 
 const defaults = {
+  pkg: {},
   checkForUpdates: true,
   invalidCommand: (cmds) => {
     const msg = `"${cmds.join(' ')}" is not a valid command`
@@ -14,5 +15,10 @@ const defaults = {
 }
 
 export function getConfig (opts) {
-  return deepAssign({}, defaults, opts)
+  const config = deepAssign({}, defaults, opts)
+
+  config.name = config.pkg.name || config.name
+  config.version = config.pkg.version || config.version
+
+  return config
 }
