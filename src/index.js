@@ -1,8 +1,7 @@
 import updateNotifier from 'update-notifier'
 import minimist from 'minimist'
-import chalk from 'chalk'
 import { getConfig } from './config'
-import { menus, addHelpMenu, addOption } from './help'
+import help from './help'
 
 export default class Transit {
   constructor (opts) {
@@ -21,10 +20,13 @@ export default class Transit {
     }
 
     this.commands = {}
-    this.options = {}
+    // this.options = {}
+    this.optionsBoolean = []
     this.optionsArgs = []
     this.optionsRequired = []
-    this.optionsBoolean = []
+    this.optionsGlobal = {}
+    this.optionsLocal = {}
+
     this.hasSubcommands = false
   }
 
@@ -36,7 +38,7 @@ export default class Transit {
     // TODO: check for duplicate commands
 
     if (data.options) {
-      data.options.forEach((o) => this.option(o))
+      data.options.forEach((o) => this.option(o, false))
     }
 
     this.commands[data.command] = data
@@ -45,21 +47,22 @@ export default class Transit {
         cmd.command = `${data.command}:${cmd.command}`
         this.command(cmd)
       })
-
-      delete this.commands[data.command].subcommands
     }
 
     return this
   }
 
-  option (data) {
+  option (data, isGlobal = true) {
     const name = [
       data.short ? `-${data.short}` : null,
       data.long ? `--${data.long}` : null
     ].filter(Boolean).join(', ')
 
     // TODO: check for duplicate options
-    this.options[name] = data.description
+
+    isGlobal
+      ? this.optionsGlobal[name] = data.description
+      : this.optionsLocal[name] = data.description
 
     data.short && this.optionsArgs.push(data.short)
     data.long && this.optionsArgs.push(data.long)
@@ -79,14 +82,45 @@ export default class Transit {
   }
 
   run () {
-    const boolean = ['h', 'help', 'v', 'version'].concat(this.optionsBoolean)
-    const argv = minimist(process.argv.slice(2), { boolean })
+    /* add predefined commands and options */
+    this.command({
+      command: 'help',
+      description: 'show help menu for a command'
+    })
+    this.option({
+      short: 'h',
+      long: 'help',
+      description: 'show help menu for a command',
+      boolean: true
+    })
+    this.option({
+      short: 'v',
+      long: 'version',
+      description: 'show version number',
+      boolean: true
+    })
+
+    const argv = minimist(process.argv.slice(2), {
+      boolean: this.optionsBoolean
+    })
+    this.argv = argv
+
+    /* show version number */
+    if (argv.version || argv.v) {
+      return console.log(`v${this.config.version}` || 'no version specified')
+    }
+
+    /* allow help flag on all commands */
+    if (argv.help || argv.h) {
+      argv._.unshift('help')
+    }
+    /* show help menus */
+    if (argv._[0] === 'help' || argv._[0] === undefined) {
+      return help.apply(this)
+    }
 
     const cmd = this.commands[argv._[0]]
-
-    if (!cmd) {
-      return Promise.reject(this.config.invalidCommand(argv._))
-    }
+    if (!cmd) return Promise.reject(this.config.invalidCommand(argv._))
 
     if (cmd.action) {
       const opts = {}
@@ -94,6 +128,7 @@ export default class Transit {
         opts[arg] = argv[arg] || false
       })
 
+      /* validate required options */
       let missingKeys
       this.optionsRequired.forEach((opt) => {
         const split = opt.split('|')
@@ -112,57 +147,5 @@ export default class Transit {
       const vals = argv._.slice(1)
       return cmd.action({ _: vals, opts })
     }
-
-    // if (!this.commands['help']) {
-    //   addHelpMenu({
-    //     command: 'help',
-    //     description: 'show help menu for a command'
-    //   })
-    // }
-    //
-    // addOption({
-    //   name: '-h, --help',
-    //   description: 'show help menu for a command'
-    // })
-    //
-    // addOption({
-    //   name: '-v, --version',
-    //   description: 'show version number'
-    // })
-    //
-    // /* allow help flag on any command */
-    // if (this.argv.help || this.argv.h) {
-    //   this.argv._.unshift('help')
-    // }
-    //
-    // /* show version number */
-    // if (this.argv.version || this.argv.v) {
-    //   return console.log(`v${this.config.version}` || 'no version specified')
-    // }
-    //
-    // const cmd = this.argv._[0]
-    //
-    // if (cmd === 'help' || cmd === undefined) {
-    //   return this._help(this.argv)
-    // } else if (this.commands[cmd]) {
-    //   return this.commands[cmd].action({
-    //     raw: this.argv,
-    //     command: cmd
-    //   })
-    // } else {
-    //   return Promise.reject(this.config.invalidCommand())
-    // }
   }
-
-  // _help () {
-  //   const cmd = this.argv._[1] || '_default'
-  //
-  //   if (this.config.prependMenu) {
-  //     const withPadding = this.config.prependMenu.split('\n').map((line) => `${new Array(3).join(' ')}${line}`).join('\n')
-  //     /* use stdout to prevent an extra newline */
-  //     process.stdout.write(withPadding)
-  //   }
-  //
-  //   console.log(menus[cmd](this.config))
-  // }
 }

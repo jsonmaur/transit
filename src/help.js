@@ -1,66 +1,94 @@
 import chalk from 'chalk'
 
-export let commands = {}
-export let options = {}
+export default function () {
+  const menu = this.argv._[1] || '_default'
 
-export let menus = {
-  _default: (data) => `
-  ${chalk.underline('Usage:')}
+  const prepend = (str) => {
+    const split = str.split('\n')
 
-    ${data.name} <command>${data.hasSubcommands ? ':<subcommand>' : ''} [options]
+    /* add padding to left side */
+    const withPadding = split.map((line) => {
+      return `${new Array(3).join(' ')}${line}`
+    }).join('\n')
 
-    ${chalk.dim('For further info about a command:')}
-    ${data.name} help <command> ${chalk.dim('or')} ${data.name} <command> --help
-
-  ${chalk.underline('Commands:')}
-
-${Object.keys(commands).map((cmd) => {
-  return '    ' + spaceOut(cmd, commands[cmd])
-}).join('\n')}
-
-  ${chalk.underline('Options:')}
-
-${Object.keys(options).map((opt) => {
-  return '    ' + spaceOut(opt, options[opt])
-}).join('\n')}
-  `
-}
-
-export function addHelpMenu (data, opts) {
-  commands[data.command] = data.description
-
-  menus[data.command] = () => {
-    const cmd = data
-
-    const description = (cmd.descriptionLong || cmd.description)
-      ? `
-  ${chalk.underline('Description:')}
-
-    ${cmd.descriptionLong || cmd.description || 'no description'}\n` : ''
-
-    const options = cmd.options
-      ? `
-  ${chalk.underline('Options:')}
-
-${Object.keys(cmd.options).map((opt) => {
-  return '    ' + spaceOut(opt, cmd.options[opt])
-}).join('\n')}\n` : ''
-
-    return `${description}
-  ${chalk.underline('Usage:')}
-
-    ${`${opts.name} ${cmd.command} [options]`}
-  ${options}`
+    console.log(withPadding)
   }
+
+  if (this.config.prependMenu && menu === '_default') {
+    prepend(this.config.prependMenu)
+  } else if (this.config.prependMenuAll) {
+    prepend(this.config.prependMenuAll)
+  }
+
+  if (menu === '_default' || !this.commands[menu]) {
+    title('Usage:')
+    text(this.config.name, `<command>${this.hasSubcommands ? ':<subcommand>' : ''}`, '[options]')
+
+    console.log()
+
+    text(chalk.dim('For further info about a command:'))
+    text(this.config.name, 'help <command>', chalk.dim('or'), this.config.name, '<command> --help')
+
+    console.log()
+
+    title('Commands:')
+    Object.keys(this.commands).forEach((cmd) => {
+      const sub = Boolean(cmd.match(/:/))
+      description(cmd, this.commands[cmd].description, sub)
+    })
+
+    console.log()
+
+    title('Options:')
+    Object.keys(this.optionsGlobal).forEach((opt) => {
+      description(opt, this.optionsGlobal[opt])
+    })
+  } else {
+    const cmd = this.commands[menu]
+    console.log()
+
+    title('Usage:')
+    text(this.config.name, `${cmd.command}${cmd.subcommands ? ':<subcommand>' : ''}`, '[options]')
+
+    if (cmd.description) {
+      console.log()
+      title('Description:')
+      text(cmd.descriptionLong || cmd.description)
+    }
+
+    if (cmd.options) {
+      console.log()
+      title('Options:')
+      Object.keys(this.optionsLocal).forEach((opt) => {
+        description(opt, this.optionsLocal[opt])
+      })
+    }
+
+    if (cmd.subcommands) {
+      console.log()
+      title('Subcommands:')
+      cmd.subcommands.forEach((cmd) => {
+        description(cmd.command, cmd.description)
+      })
+    }
+  }
+
+  /* trailing blank line */
+  console.log()
 }
 
-export function addOption (data) {
-  options[data.name] = data.description
+export function title (str) {
+  console.log(`  ${chalk.underline(str)}\n`)
 }
 
-export function spaceOut (name, desc) {
-  const paddingLeft = 25
+export function text (...str) {
+  console.log(`    ${str.join(' ')}`)
+}
+
+export function description (name, desc, sub = false) {
+  const padding = 25
+  const paddingLeft = sub ? padding - 3 : padding
   const fill = new Array(paddingLeft - name.length - 1).join('.')
 
-  return `${name} ${chalk.dim(fill)} ${desc}`
+  console.log(`    ${sub ? chalk.dim.gray('└─ ') : ''}${name} ${chalk.dim.gray(fill)} ${desc}`)
 }
