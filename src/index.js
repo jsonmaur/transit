@@ -6,6 +6,7 @@ import help from './help'
 export default class Transit {
   constructor (opts) {
     this.config = getConfig(opts)
+    this.argv = minimist(process.argv.slice(2))
 
     if (!this.config.name) throw new Error('"name" is required!')
     if (!this.config.version) throw new Error('"version" is required!')
@@ -26,6 +27,7 @@ export default class Transit {
     this.optionsRequired = []
     this.optionsGlobal = {}
     this.optionsLocal = {}
+    this.ctx = {}
 
     this.hasSubcommands = false
   }
@@ -76,6 +78,21 @@ export default class Transit {
     if (data.boolean) {
       data.short && this.optionsBoolean.push(data.short)
       data.long && this.optionsBoolean.push(data.long)
+    }
+
+    return this
+  }
+
+  context (data) {
+    if (data.name === '_' || data.name === 'opts') {
+      throw new Error('"_" and "opts" are reserved context vars!')
+    }
+
+    if (data.name && data.action && typeof data.action === 'function') {
+      this.ctx[data.name] = data.action({
+        argv: this.argv,
+        ctx: this.ctx
+      })
     }
 
     return this
@@ -148,7 +165,7 @@ export default class Transit {
       }
 
       const vals = argv._.slice(1)
-      return cmd.action({ _: vals, opts })
+      return cmd.action({ _: vals, opts, ...this.ctx })
     }
   }
 }

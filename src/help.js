@@ -24,7 +24,14 @@ export default function () {
 
   if (menu === '_default' || !this.commands[menu]) {
     title('Usage:')
-    text(this.config.name, `<command>${this.hasSubcommands ? ':<subcommand>' : ''}`, '[options]')
+    if (this.config.usage) {
+      text(this.config.usage)
+    } else {
+      const shorthand = this.config.shorthand
+        ? `${chalk.dim('or')} ${this.config.shorthand}`
+        : null
+      text(this.config.name, shorthand, `<command>${this.hasSubcommands ? ':<subcommand>' : ''}`, '[options]')
+    }
 
     console.log()
 
@@ -49,7 +56,11 @@ export default function () {
     const cmd = this.commands[menu]
 
     title('Usage:')
-    text(this.config.name, `${cmd.command}${cmd.subcommands ? ':<subcommand>' : ''}`, '[options]')
+    if (cmd.usage) {
+      text(cmd.usage)
+    } else {
+      text(this.config.name, `${cmd.command}${cmd.subcommands ? ':<subcommand>' : ''}`, '[options]')
+    }
 
     if (cmd.description) {
       console.log()
